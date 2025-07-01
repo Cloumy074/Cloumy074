@@ -1,0 +1,157 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" font-family="'Monaspace Krypton',monospace" width="1024px" height="687px" font-size="14px">
+<style>
+@import url("https://cdn.jsdelivr.net/gh/iXORTech/webfonts@main/monaspace/krypton/krypton.css");
+.key {fill: #ffa657; font-weight: bold;}
+.value {fill: #a5d6ff;}
+.addColor {fill: #3fb950;}
+.delColor {fill: #f85149;}
+.separator {fill: #c9d1d9;}
+.fur {fill: #A89F88;}
+.ear {fill: #FEF8E9;}
+.inside {fill: #FDF1D5;}
+.eyes {fill: #76A4AA;}
+.mouth {fill: #FFD9CC;}
+.pink {fill: #F6C2D8;}
+.blue {fill: #AED2D9;}
+.back {fill: #7E7462;}
+.front {fill: #665B40;}
+.choker {fill: #908887;}
+.green {fill: #238636;}
+.red {fill: #da3633;}
+.purple {fill: #8b5cf6;}
+.gray {fill: #6e7681;}
+.note {fill: #7c3aed; font-size: 12px;}
+.prompt {fill: #39d353; font-size: 14px;}
+.cursor {fill: #f0f6fc;}
+text, tspan {white-space: pre;}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+.blinking {
+    animation: blink 1s infinite;
+}
+</style>
+<rect width="1024px" height="687px" fill="#0d1117" rx="15"/>
+<text x="10" y="30" fill="#c9d1d9" class="ascii">
+<tspan x="10" y="50">                           ..</tspan>
+<tspan x="10" y="65">                         ..@@..</tspan>
+<tspan x="10" y="80">                        ..@<tspan class="fur">.+</tspan>@%.</tspan>
+<tspan x="10" y="95">   ......               .@<tspan class="fur">#*=--@</tspan>..</tspan>
+<tspan x="10" y="110">  .@<tspan class="fur">**%</tspan>@@..             .@<tspan class="fur">+-:</tspan>@.<tspan class="fur">=+</tspan>@.</tspan>
+<tspan x="10" y="125"> .@<tspan class="fur">=</tspan>%@<tspan class="fur">..=#</tspan>@..           .<tspan class="fur">+.-:</tspan>#=<tspan class="fur">@</tspan>%@@<tspan class="ear">.</tspan></tspan>
+<tspan x="10" y="140"> .@<tspan class="fur">.:.</tspan>@<tspan class="fur">..=-=@</tspan>..        .<tspan class="fur">*#++-.</tspan>@<tspan class="ear">...</tspan>@@<tspan class="ear">..</tspan></tspan>
+<tspan x="10" y="155"> .@<tspan class="fur">.+-</tspan>@@<tspan class="fur">.:-:-*</tspan>@..     ..@<tspan class="fur">*####</tspan>@<tspan class="ear">........</tspan></tspan>
+<tspan x="10" y="170"> .@=@<tspan class="ear">...</tspan>@<tspan class="fur">+##%++</tspan>#@@..=@@@@<tspan class="fur">:::::</tspan>@<tspan class="ear">......</tspan>@<tspan class="ear">..</tspan></tspan>
+<tspan x="10" y="185"> .@<tspan class="ear">......</tspan>@<tspan class="fur">:----........:-=====+%#.</tspan>@@<tspan class="fur">.=.</tspan>@.</tspan>
+<tspan x="10" y="200">.@<tspan class="ear">.......</tspan>@<tspan class="fur">:==============-....--=#..-...</tspan>.</tspan>
+<tspan x="10" y="215"> .@<tspan class="ear">.....</tspan>@<tspan class="fur">+-=:......</tspan>+%%@@<tspan class="fur">*+</tspan>@@@%<tspan class="fur">#-</tspan>@ @<tspan class="fur">.-%.</tspan>@.</tspan>
+<tspan x="10" y="230"> .@<tspan class="ear">...-</tspan>@<tspan class="fur">+-=</tspan>*%@@@@@@#<tspan class="inside">.....</tspan>@<tspan class="eyes">.+.-=</tspan>@  @.<tspan class="pink">@@</tspan>.@.</tspan>
+<tspan x="10" y="245">  .#@.#<tspan class="fur">+-=</tspan>@-@<tspan class="eyes">......</tspan>@<tspan class="inside">.....</tspan>@<tspan class="eyes">%#===#</tspan>@--<tspan class="pink">@@@@</tspan>...</tspan>
+<tspan x="10" y="260">   .@@<tspan class="fur">.:=</tspan>@--@<tspan class="eyes">=+=+==</tspan>@<tspan class="inside">.....</tspan>@<tspan class="eyes">-+===+</tspan>@---<tspan class="pink">@@</tspan>.@@.</tspan>
+<tspan x="10" y="275">   .@<tspan class="back">@%.</tspan>@---@<tspan class="eyes">=+====</tspan>@<tspan class="inside">......</tspan>@<tspan class="eyes">*==++</tspan>@---<tspan class="inside">...</tspan>@.</tspan>
+<tspan x="10" y="290">    .@<tspan class="front">@@</tspan>@---@<tspan class="eyes">=++=+=</tspan>@<tspan class="inside">.......</tspan>@<tspan class="eyes">*+=*</tspan>@---<tspan class="blue">@@@@</tspan>.</tspan>
+<tspan x="10" y="305">    .@<tspan class="front">.:</tspan>@---@<tspan class="eyes">*====*</tspan>@<tspan class="inside">........</tspan>@@@#---@<tspan class="inside">+...</tspan>@.</tspan>
+<tspan x="10" y="320">   .-@<tspan class="front">@@</tspan>@----@@@@@@<tspan class="inside">....<tspan class="mouth">-%</tspan>.....</tspan>@+@@@<tspan class="inside">......</tspan>:.</tspan>
+<tspan x="10" y="335">  .@<tspan class="front">@@@.@</tspan>@-------@<tspan class="inside">....................#</tspan>@..</tspan>
+<tspan x="10" y="350">   .@<tspan class="inside">......</tspan>@@@@@@<tspan class="inside">....................</tspan>@.</tspan>
+<tspan x="10" y="365">   ..@<tspan class="inside">-:......................</tspan><tspan class="choker">@@@@@@@</tspan>%@..</tspan>
+<tspan x="10" y="380">      .<tspan class="inside">...</tspan>@@<tspan class="inside">.......</tspan><tspan class="choker">%@@@@@@@@@@</tspan>.<tspan class="inside">@@=.@</tspan><tspan class="eyes">-=##%@</tspan>..</tspan>
+<tspan x="10" y="395">      .<tspan class="eyes">@@+--</tspan><tspan class="choker">#@@@@@@</tspan><tspan class="inside">.@@%@..</tspan><tspan class="choker">@@@@@@@@</tspan><tspan class="eyes">=@-===@</tspan>..</tspan>
+<tspan x="10" y="410">    .<tspan class="eyes">@@@.....-@.</tspan><tspan class="choker">@@@@@@@@@@@#</tspan>......<tspan class="eyes">%=-#%#@</tspan>.</tspan>
+<tspan x="10" y="425">     ..<tspan class="eyes">@*=%%@=-.@</tspan>..........      ..<tspan class="eyes">@@@@</tspan>...</tspan>
+<tspan x="10" y="440">      .<tspan class="eyes">@@@</tspan>...<tspan class="eyes">*+@</tspan>..                .....</tspan>
+<tspan x="10" y="455">       ..   .<tspan class="eyes">@@</tspan>.</tspan>
+<tspan x="10" y="470">             ..</tspan>
+</text>
+<text x="360" y="35" fill="#c9d1d9" font-size="14px">
+<tspan x="360" y="35">Z.Y.D. | "Cloumy" -—- @Cloumy074 -——————————————————————————————————————-—-</tspan>
+</text>
+<text x="360" y="60" fill="#c9d1d9" font-size="14px">
+<tspan x="360" y="60">. <tspan class="key">Bio</tspan>:........................... <tspan class="value">"Always improving" | CSM @ Vanier College</tspan></tspan>
+</text>
+<text x="360" y="78" fill="#c9d1d9" font-size="14px">
+<tspan x="360" y="78">. <tspan class="key">Uptime</tspan>:....................................... <tspan class="value">0 years, 7 months, 27 days</tspan></tspan>
+</text>
+<text x="360" y="96" fill="#c9d1d9" font-size="14px">
+<tspan x="360" y="96">. <tspan class="key">OS</tspan>:........................................................... <tspan class="value">Windows 11</tspan></tspan>
+</text>
+<text x="360" y="114" fill="#c9d1d9" font-size="14px">
+<tspan x="360" y="114">. <tspan class="key">Editors</tspan>:.............................................. <tspan class="value">Visual Studio Code</tspan></tspan>
+</text>
+<text x="360" y="132" fill="#c9d1d9" font-size="14px">
+<tspan x="360" y="132">. <tspan class="key">IDE</tspan>:....................................................... <tspan class="value">IntelliJ IDEA</tspan></tspan>
+</text>
+<text x="360" y="168" fill="#c9d1d9" font-size="14px">
+<tspan x="360" y="168">. <tspan class="key">Languages.Programming</tspan>:...................................... <tspan class="value">Java, Python</tspan></tspan>
+</text>
+<text x="360" y="186" fill="#c9d1d9" font-size="14px">
+<tspan x="360" y="186">. <tspan class="key">Languages.Markup</tspan>:......................................... <tspan class="value">HTML, Markdown</tspan></tspan>
+</text>
+<text x="360" y="204" fill="#c9d1d9" font-size="14px">
+<tspan x="360" y="204">. <tspan class="key">Languages.Real</tspan>:................................. <tspan class="value">Chinese, English, French</tspan></tspan>
+</text>
+<text x="360" y="240" fill="#c9d1d9" font-size="14px">
+<tspan x="360" y="240"><tspan class="separator">— Contact —————————————————————————————————————————————————————————————————</tspan></tspan>
+</text>
+<text x="360" y="258" fill="#c9d1d9" font-size="14px">
+<tspan x="360" y="258">. <tspan class="key">Email.Contact</tspan>:................................... <tspan class="value">cnfighteraimi@gmail.com</tspan></tspan>
+</text>
+<text x="360" y="276" fill="#c9d1d9" font-size="14px">
+<tspan x="360" y="276">. <tspan class="key">Email.Alternative</tspan>:............................. <tspan class="value">cnfighteraimi@outlook.com</tspan></tspan>
+</text>
+<text x="360" y="294" fill="#c9d1d9" font-size="14px">
+<tspan x="360" y="294">. <tspan class="key">LinkedIn</tspan>:...................................................... <tspan class="value">in/yuduoz</tspan></tspan>
+</text>
+<text x="360" y="312" fill="#c9d1d9" font-size="14px">
+<tspan x="360" y="312">. <tspan class="key">Discord</tspan>:....................................................... <tspan class="value">Cloumy074</tspan></tspan>
+</text>
+<text x="360" y="348" fill="#c9d1d9" font-size="14px">
+<tspan x="360" y="348"><tspan class="separator">— GitHub Statistics ———————————————————————————————————————————————————————</tspan></tspan>
+</text>
+<text x="360" y="366" fill="#c9d1d9" font-size="14px">
+<tspan x="360" y="366">. <tspan class="key">Repository</tspan>:................. <tspan class="value">8 (<tspan class="key">Contributed</tspan>: 7)</tspan> | <tspan class="value"><tspan class="key">Stars</tspan>: 1</tspan> | <tspan class="value"><tspan class="key">Followers</tspan>: 3</tspan></tspan>
+</text>
+<text x="360" y="384" fill="#c9d1d9" font-size="14px">
+<tspan x="360" y="384">. <tspan class="key">Commits</tspan>:.................. <tspan class="value">151</tspan> | <tspan class="value"><tspan class="key">Lines</tspan>: 288,907 ( <tspan class="addColor">433,357++</tspan>,  <tspan class="delColor">144,450--</tspan> )</tspan></tspan>
+</text>
+<text x="360" y="402" fill="#c9d1d9" font-size="14px">
+<tspan x="360" y="402">. <tspan class="key">Issues</tspan>:.............................................. <tspan class="value"><tspan class="key">Open</tspan>: <tspan class="green">0</tspan></tspan> | <tspan class="value"><tspan class="key">Closed</tspan>: <tspan class="red">0</tspan></tspan></tspan>
+</text>
+<text x="360" y="420" fill="#c9d1d9" font-size="14px">
+<tspan x="360" y="420">. <tspan class="key">Pull Requests</tspan>:................ <tspan class="value"><tspan class="key">Open</tspan>: <tspan class="green">1</tspan></tspan> | <tspan class="value"><tspan class="key">Draft</tspan>: <tspan class="gray">0</tspan></tspan> | <tspan class="value"><tspan class="key">Merged</tspan>: <tspan class="purple">7</tspan></tspan> | <tspan class="value"><tspan class="key">Closed</tspan>: <tspan class="red">1</tspan></tspan></tspan>
+</text><g transform="translate(360, 438)">  <rect x="0" y="0" width="224.4" height="10" fill="#41b883" rx="1"/>  <rect x="224.39716312056737" y="0" width="214.5" height="10" fill="#b07219" rx="1"/>  <rect x="438.86524822695037" y="0" width="91.3" height="10" fill="#3572A5" rx="1"/>  <rect x="530.2127659574469" y="0" width="17.9" height="10" fill="#f1e05a" rx="1"/>  <rect x="548.0851063829788" y="0" width="6.0" height="10" fill="#c6538c" rx="1"/>  <rect x="554.0425531914894" y="0" width="4.0" height="10" fill="#dea584" rx="1"/>  <rect x="558.0141843971631" y="0" width="2.0" height="10" fill="#663399" rx="1"/></g>
+<text x="360" y="473" fill="#c9d1d9" font-size="14px">
+<tspan x="360" y="473">  <tspan style="fill:#41b883">●</tspan> <tspan class="key">Vue</tspan>: <tspan class="value">40.1%</tspan> <tspan class="value">113 commits</tspan> <tspan class="value">(+344,502 -114,834)</tspan></tspan>
+</text>
+<text x="360" y="491" fill="#c9d1d9" font-size="14px">
+<tspan x="360" y="491">  <tspan style="fill:#b07219">●</tspan> <tspan class="key">Java</tspan>: <tspan class="value">38.3%</tspan> <tspan class="value">108 commits</tspan> <tspan class="value">(+13,956 -4,651)</tspan></tspan>
+</text>
+<text x="360" y="509" fill="#c9d1d9" font-size="14px">
+<tspan x="360" y="509">  <tspan style="fill:#3572A5">●</tspan> <tspan class="key">Python</tspan>: <tspan class="value">16.3%</tspan> <tspan class="value">46 commits</tspan> <tspan class="value">(+19,686 -6,562)</tspan></tspan>
+</text>
+<text x="360" y="527" fill="#c9d1d9" font-size="14px">
+<tspan x="360" y="527">  <tspan style="fill:#f1e05a">●</tspan> <tspan class="key">JavaScript</tspan>: <tspan class="value">3.2%</tspan> <tspan class="value">9 commits</tspan> <tspan class="value">(+33,812 -11,270)</tspan></tspan>
+</text>
+<text x="360" y="545" fill="#c9d1d9" font-size="14px">
+<tspan x="360" y="545">  <tspan style="fill:#c6538c">●</tspan> <tspan class="key">SCSS</tspan>: <tspan class="value">1.1%</tspan> <tspan class="value">3 commits</tspan> <tspan class="value">(+15,338 -5,112)</tspan></tspan>
+</text>
+<text x="360" y="563" fill="#c9d1d9" font-size="14px">
+<tspan x="360" y="563">  <tspan style="fill:#dea584">●</tspan> <tspan class="key">Rust</tspan>: <tspan class="value">0.7%</tspan> <tspan class="value">2 commits</tspan> <tspan class="value">(+6,063 -2,021)</tspan></tspan>
+</text>
+<text x="360" y="581" fill="#c9d1d9" font-size="14px">
+<tspan x="360" y="581">  <tspan style="fill:#663399">●</tspan> <tspan class="key">CSS</tspan>: <tspan class="value">0.4%</tspan> <tspan class="value">1 commits</tspan> <tspan class="value">(+0 -0)</tspan></tspan>
+</text>
+<text x="10" y="619" fill="#c9d1d9" class="note">
+<tspan x="10" y="619" class="note">Generated on 2025-07-01 03:55:24 UTC</tspan>
+</text>
+<text x="10" y="634" fill="#c9d1d9" class="note">
+<tspan x="10" y="634" class="note">These metrics include private contributions.</tspan>
+</text>
+<text x="10" y="659" fill="#c9d1d9" class="prompt">
+<tspan x="10" y="659" class="prompt">Cloumy074@github.com:~$ </tspan><tspan class="cursor blinking">█</tspan>
+</text>
+</svg>
