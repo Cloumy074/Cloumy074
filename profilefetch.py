@@ -1019,7 +1019,7 @@ text, tspan {{white-space: pre;}}
 <tspan x="{ascii_x}" y="{ascii_y + 15*19}">  .@<tspan class="front">@@@.@</tspan>@-------@<tspan class="inside">                    #</tspan>@..</tspan>
 <tspan x="{ascii_x}" y="{ascii_y + 15*20}">   .@<tspan class="inside">      </tspan>@@@@@@<tspan class="inside">                    </tspan>@.</tspan>
 <tspan x="{ascii_x}" y="{ascii_y + 15*21}">   ..@<tspan class="inside">-:                      </tspan><tspan class="choker">@@@@@@@</tspan>%@..</tspan>
-<tspan x="{ascii_x}" y="{ascii_y + 15*22}">      .<tspan class="inside">   </tspan>@@<tspan class="inside">       </tspan><tspan class="choker">%@@@@@@@@@@</tspan>.<tspan class="inside">@@=.@</tspan><tspan class="eyes">-=##%@</tspan>..</tspan>
+<tspan x="{ascii_x}" y="{ascii_y + 15*22}">      .<tspan class="inside">   </tspan><tspan class="eyes">@@</tspan><tspan class="inside">       </tspan><tspan class="choker">%@@@@@@@@@@</tspan>.<tspan class="inside">@@=.@</tspan><tspan class="eyes">-=##%@</tspan>..</tspan>
 <tspan x="{ascii_x}" y="{ascii_y + 15*23}">      .<tspan class="eyes">@@+--</tspan><tspan class="choker">#@@@@@@</tspan><tspan class="inside">.@@%@..</tspan><tspan class="choker">@@@@@@@@</tspan><tspan class="eyes">=@-===@</tspan>..</tspan>
 <tspan x="{ascii_x}" y="{ascii_y + 15*24}">    .<tspan class="eyes">@@@.....-@.</tspan><tspan class="choker">@@@@@@@@@@@#</tspan>......<tspan class="eyes">%=-#%#@</tspan>.</tspan>
 <tspan x="{ascii_x}" y="{ascii_y + 15*25}">     ..<tspan class="eyes">@*=%%@=-.@</tspan>..........      ..<tspan class="eyes">@@@@</tspan>...</tspan>
