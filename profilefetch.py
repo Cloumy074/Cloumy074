@@ -149,8 +149,8 @@ def get_profile_content_definition(user_data):
 
     # Contact info
     content_lines.extend([
-        ("Email.Contact", "cnfighteraimi@gmail.com"),
-        ("Email.Alternative", "cnfighteraimi@outlook.com"),
+        ("Email.Contact", "me@cloumy.top"),
+        ("Email.Alternative", "cnfighteraimi@gmail.com"),
         ("LinkedIn", "in/yuduoz"),
         ("Discord", "Cloumy074"),
     ])
@@ -1019,7 +1019,7 @@ text, tspan {{white-space: pre;}}
 <tspan x="{ascii_x}" y="{ascii_y + 15*19}">  .@<tspan class="front">@@@.@</tspan>@-------@<tspan class="inside">                    #</tspan>@..</tspan>
 <tspan x="{ascii_x}" y="{ascii_y + 15*20}">   .@<tspan class="inside">      </tspan>@@@@@@<tspan class="inside">                    </tspan>@.</tspan>
 <tspan x="{ascii_x}" y="{ascii_y + 15*21}">   ..@<tspan class="inside">-:                      </tspan><tspan class="choker">@@@@@@@</tspan>%@..</tspan>
-<tspan x="{ascii_x}" y="{ascii_y + 15*22}">      .<tspan class="inside">   </tspan><tspan class="eyes">@@</tspan><tspan class="inside">       </tspan><tspan class="choker">%@@@@@@@@@@</tspan>.<tspan class="inside">@@=.@</tspan><tspan class="eyes">-=##%@</tspan>..</tspan>
+<tspan x="{ascii_x}" y="{ascii_y + 15*22}">      .<tspan class="inside">   </tspan><tspan class="eyes">@@</tspan>em<tspan class="inside">       </tspan><tspan class="choker">%@@@@@@@@@@</tspan>.<tspan class="inside">@@=.@</tspan><tspan class="eyes">-=##%@</tspan>..</tspan>
 <tspan x="{ascii_x}" y="{ascii_y + 15*23}">      .<tspan class="eyes">@@+--</tspan><tspan class="choker">#@@@@@@</tspan><tspan class="inside">.@@%@..</tspan><tspan class="choker">@@@@@@@@</tspan><tspan class="eyes">=@-===@</tspan>..</tspan>
 <tspan x="{ascii_x}" y="{ascii_y + 15*24}">    .<tspan class="eyes">@@@.....-@.</tspan><tspan class="choker">@@@@@@@@@@@#</tspan>......<tspan class="eyes">%=-#%#@</tspan>.</tspan>
 <tspan x="{ascii_x}" y="{ascii_y + 15*25}">     ..<tspan class="eyes">@*=%%@=-.@</tspan>..........      ..<tspan class="eyes">@@@@</tspan>...</tspan>
