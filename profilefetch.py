@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 import requests
 
 # SVG Configuration Constants
-SVG_WIDTH = 1024
+SVG_WIDTH = 1100
 SVG_HEIGHT = None  # Will be calculated dynamically based on content
 ASCII_HEIGHT = 402  # Height of ASCII art section, modify based on the art added
 
@@ -445,7 +445,8 @@ def calculate_language_percentages(language_stats):
                 'additions': stats['additions'],
                 'deletions': stats['deletions'],
                 'net': stats['additions'] - stats['deletions'],
-                'color': stats['color']
+                'color': stats['color'],
+                'repos': stats.get('repos', {})
             }
 
     # Sort by percentage
@@ -515,6 +516,132 @@ class GitHubProfileGenerator:
             pass
 
         return False
+
+    def fetch_all_commits_for_repo(self, owner, repo_name, from_date, to_date):
+        """Fetch all commits for a specific repository using the REST API"""
+        print(f"  Fetching additional commit data for {owner}/{repo_name}...")
+
+        rest_api_url = f"https://api.github.com/repos/{owner}/{repo_name}/commits"
+        params = {
+            "author": self.username,
+            "since": from_date,
+            "until": to_date,
+            "per_page": 100
+        }
+
+        all_commits = []
+        page = 1
+
+        while True:
+            params["page"] = page
+            response = requests.get(rest_api_url, params=params, headers=self.headers)
+
+            if response.status_code == 200:
+                commits = response.json()
+                if not commits:
+                    break
+
+                all_commits.extend(commits)
+                page += 1
+
+                if len(commits) < 100:  # Last page
+                    break
+            else:
+                print(f"  ⚠ Failed to fetch commits for {owner}/{repo_name}: {response.status_code}")
+                break
+
+        return len(all_commits)
+
+    def get_user_repositories(self):
+        """Get a list of repositories that the user has contributed to"""
+        query = """
+        query($username: String!, $cursor: String) {
+            user(login: $username) {
+                repositories(first: 100, after: $cursor, orderBy: {field: PUSHED_AT, direction: DESC}) {
+                    pageInfo {
+                        hasNextPage
+                        endCursor
+                    }
+                    nodes {
+                        name
+                        owner {
+                            login
+                        }
+                        isPrivate
+                        isFork
+                        pushedAt
+                        primaryLanguage {
+                            name
+                            color
+                        }
+                    }
+                }
+                repositoriesContributedTo(first: 100, after: $cursor, orderBy: {field: PUSHED_AT, direction: DESC}) {
+                    pageInfo {
+                        hasNextPage
+                        endCursor
+                    }
+                    nodes {
+                        name
+                        owner {
+                            login
+                        }
+                        isPrivate
+                        isFork
+                        pushedAt
+                        primaryLanguage {
+                            name
+                            color
+                        }
+                    }
+                }
+            }
+        }
+        """
+
+        repositories = []
+        contributed_repos = []
+
+        # First, fetch owned repositories
+        has_next_page = True
+        cursor = None
+
+        while has_next_page:
+            response = requests.post(
+                self.graphql_url,
+                json={'query': query, 'variables': {'username': self.username, 'cursor': cursor}},
+                headers=self.headers
+            )
+
+            if response.status_code != 200:
+                print(f"⚠ Failed to fetch repositories: {response.status_code}")
+                break
+
+            data = response.json()
+            if 'errors' in data:
+                print(f"⚠ GraphQL errors fetching repositories: {data['errors']}")
+                break
+
+            user_data = data.get('data', {}).get('user', {})
+
+            # Process owned repositories
+            repos = user_data.get('repositories', {})
+            for repo in repos.get('nodes', []):
+                if repo:
+                    repositories.append(repo)
+
+            # Process contributed repositories
+            contrib_repos = user_data.get('repositoriesContributedTo', {})
+            for repo in contrib_repos.get('nodes', []):
+                if repo:
+                    contributed_repos.append(repo)
+
+            # Check pagination for owned repos
+            page_info = repos.get('pageInfo', {})
+            has_next_page = page_info.get('hasNextPage', False)
+            cursor = page_info.get('endCursor') if has_next_page else None
+
+        return repositories, contributed_repos
 
     def get_user_data_multi_year(self, years_back=None):
         """Fetch user data across multiple years including detailed issue and PR statistics with draft PRs"""
@@ -618,8 +745,33 @@ class GitHubProfileGenerator:
             'commits': 0,
             'additions': 0,
             'deletions': 0,
-            'color': '#000000'
+            'color': '#000000',
+            'repos': {}  # Track commits per repo for each language
         })
+
+        # Fetch the user's repositories and contributed repositories
+        print("Fetching repositories the user has contributed to...")
+        owned_repos, contributed_repos = self.get_user_repositories()
+
+        # Combine all repositories for processing
+        all_repos = owned_repos + contributed_repos
+        print(f"✓ Found {len(owned_repos)} owned repositories and {len(contributed_repos)} contributed repositories")
+
+        # Map of repo full names to their primary language
+        repo_languages = {}
+        for repo in all_repos:
+            owner = repo.get('owner', {}).get('login', '')
+            name = repo.get('name', '')
+            full_name = f"{owner}/{name}"
+
+            primary_lang = repo.get('primaryLanguage', {})
+            if primary_lang and primary_lang.get('name'):
+                lang_name = primary_lang['name']
+                lang_color = primary_lang.get('color') or LANGUAGE_COLORS.get(lang_name, '#000000')
+                repo_languages[full_name] = {
+                    'name': lang_name,
+                    'color': lang_color
+                }
 
         # Fetch data year by year to avoid API limits
         current_year = end_date.year
@@ -629,7 +781,7 @@ class GitHubProfileGenerator:
 
             print(f"Fetching contributions for {year}...")
 
-            # Fixed query with proper pagination
+            # First, get regular contributions via GraphQL
             contributions_query = """
             query($username: String!, $from: DateTime!, $to: DateTime!) {
                 user(login: $username) {
@@ -701,34 +853,32 @@ class GitHubProfileGenerator:
 
             year_data = user_contrib['contributionsCollection']
             contributions_data[year] = year_data
-            year_commits = year_data.get('totalCommitContributions', 0)
-            total_commits += year_commits
-            print(f"  ✓ {year}: {year_commits} commits")
+            year_commits_from_graphql = year_data.get('totalCommitContributions', 0)
 
-            # Process language statistics
+            # Process GraphQL language statistics
             commit_contribs = year_data.get('commitContributionsByRepository', [])
-            if not commit_contribs:
-                print(f"  No repository contributions found for {year}")
-                continue
+
+            # Track repositories with few commits that might need additional REST API fetching
+            small_repos = []
 
             for repo_contrib in commit_contribs:
                 if not repo_contrib or not repo_contrib.get('repository'):
                     continue
 
                 repo = repo_contrib['repository']
+                repo_owner = repo.get('owner', {}).get('login', '')
+                repo_name = repo.get('name', '')
+                repo_full_name = f"{repo_owner}/{repo_name}"
+
                 contributions = repo_contrib.get('contributions', {})
                 commit_count = contributions.get('totalCount', 0) if contributions else 0
 
+                # If repo has few commits, mark for additional fetching
+                if commit_count < 10:
+                    small_repos.append((repo_owner, repo_name))
+
                 if commit_count == 0:
                     continue
-
-                # Get primary language
-                primary_lang = repo.get('primaryLanguage')
-                if primary_lang and primary_lang.get('name'):
-                    lang_name = primary_lang['name']
-                    lang_color = primary_lang.get('color') or LANGUAGE_COLORS.get(lang_name, '#000000')
-                    language_stats[lang_name]['commits'] += commit_count
-                    language_stats[lang_name]['color'] = lang_color
 
                 # Process all languages in repo (weighted by usage)
                 languages = repo.get('languages', {})
@@ -755,6 +905,94 @@ class GitHubProfileGenerator:
                                 # Estimate additions/deletions (rough approximation)
                                 language_stats[lang_name]['additions'] += int(edge_size * 0.3)
                                 language_stats[lang_name]['deletions'] += int(edge_size * 0.1)
+
+                                # Track commits per repo for this language
+                                if repo_full_name not in language_stats[lang_name]['repos']:
+                                    language_stats[lang_name]['repos'][repo_full_name] = 0
+                                language_stats[lang_name]['repos'][repo_full_name] += weighted_commits
+                    else:
+                        # If no language data available, use primary language as fallback
+                        primary_lang = repo.get('primaryLanguage')
+                        if primary_lang and primary_lang.get('name'):
+                            lang_name = primary_lang['name']
+                            lang_color = primary_lang.get('color') or LANGUAGE_COLORS.get(lang_name, '#000000')
+                            language_stats[lang_name]['commits'] += commit_count
+                            language_stats[lang_name]['color'] = lang_color
+
+                            # Track commits per repo for this language
+                            if repo_full_name not in language_stats[lang_name]['repos']:
+                                language_stats[lang_name]['repos'][repo_full_name] = 0
+                            language_stats[lang_name]['repos'][repo_full_name] += commit_count
+                else:
+                    # If no languages data at all, fall back to primary language
+                    primary_lang = repo.get('primaryLanguage')
+                    if primary_lang and primary_lang.get('name'):
+                        lang_name = primary_lang['name']
+                        lang_color = primary_lang.get('color') or LANGUAGE_COLORS.get(lang_name, '#000000')
+                        language_stats[lang_name]['commits'] += commit_count
+                        language_stats[lang_name]['color'] = lang_color
+
+                        # Track commits per repo for this language
+                        if repo_full_name not in language_stats[lang_name]['repos']:
+                            language_stats[lang_name]['repos'][repo_full_name] = 0
+                        language_stats[lang_name]['repos'][repo_full_name] += commit_count
+
+            # Now fetch additional commit data using REST API for repos with few commits
+            year_commits_from_rest = 0
+
+            print(f"  Checking {len(small_repos)} repositories with few commits for additional data...")
+            for repo_owner, repo_name in small_repos:
+                # Get additional commits using REST API
+                additional_commits = self.fetch_all_commits_for_repo(
+                    repo_owner,
+                    repo_name,
+                    year_start,
+                    year_end
+                )
+
+                if additional_commits > 0:
+                    repo_full_name = f"{repo_owner}/{repo_name}"
+                    print(f"  ✓ Found {additional_commits} commits for {repo_full_name} via REST API")
+
+                    # Only count additional commits beyond what GraphQL already reported
+                    graphql_reported = 0
+                    for repo_contrib in commit_contribs:
+                        if not repo_contrib or not repo_contrib.get('repository'):
+                            continue
+
+                        repo = repo_contrib['repository']
+                        if (repo.get('owner', {}).get('login', '') == repo_owner and
+                                repo.get('name', '') == repo_name):
+                            contributions = repo_contrib.get('contributions', {})
+                            graphql_reported = contributions.get('totalCount', 0) if contributions else 0
+                            break
+
+                    if additional_commits > graphql_reported:
+                        extra_commits = additional_commits - graphql_reported
+                        year_commits_from_rest += extra_commits
+
+                        # Update language stats for these additional commits
+                        repo_lang = None
+                        if repo_full_name in repo_languages:
+                            repo_lang = repo_languages[repo_full_name]
+
+                        if repo_lang:
+                            lang_name = repo_lang['name']
+                            lang_color = repo_lang['color']
+                            language_stats[lang_name]['commits'] += extra_commits
+                            language_stats[lang_name]['color'] = lang_color
+
+                            # Track commits per repo
+                            if repo_full_name not in language_stats[lang_name]['repos']:
+                                language_stats[lang_name]['repos'][repo_full_name] = 0
+                            language_stats[lang_name]['repos'][repo_full_name] += extra_commits
+
+            # Total year commits = GraphQL reported + additional from REST API
+            year_commits = year_commits_from_graphql + year_commits_from_rest
+            total_commits += year_commits
+
+            print(
+                f"  ✓ {year}: {year_commits} total commits ({year_commits_from_graphql} from GraphQL, {year_commits_from_rest} additional from REST API)")
 
         print(f"✓ Total commits collected: {total_commits}")
         print(f"✓ Languages found: {len(language_stats)}")
@@ -819,7 +1057,7 @@ class GitHubProfileGenerator:
         <stop offset="0%" stop-color="{titlebar_bg}"/>
         <stop offset="100%" stop-color="{titlebar_bg}"/>
     </linearGradient>
-</defs>f
+</defs>
 
 <!-- Titlebar with rounded top corners only -->
 <rect x="0" y="0" width="{window_width}" height="{titlebar_height}" rx="12" ry="12" fill="url(#titlebar-gradient)" filter="url(#window-shadow)"/>
@@ -864,11 +1102,6 @@ class GitHubProfileGenerator:
         """Generate the complete SVG"""
         user = data['user']
         language_percentages = calculate_language_percentages(data['language_stats'])
-
-        # Calculate total lines of code
-        total_additions = sum(lang['additions'] for lang in data['language_stats'].values())
-        total_deletions = sum(lang['deletions'] for lang in data['language_stats'].values())
-        net_lines = total_additions - total_deletions
 
         # Color schemes
         if mode == 'dark':
@@ -991,44 +1224,45 @@ text, tspan {{white-space: pre;}}
 </style>
 <rect width="{svg_width}px" height="{svg_height}px" fill="{bg_color}" rx="{border_radius}"/>'''
 
-        # ASCII art positioned at x=9
-        ascii_x = 10
+        # ASCII art positioned at x=25
+        ascii_x = 25
         ascii_y = 50
 
         svg_content += f'''
 <text x="{ascii_x}" y="30" fill="{text_color}" class="ascii">
-<tspan x="{ascii_x}" y="{ascii_y}">                           ..</tspan>
-<tspan x="{ascii_x}" y="{ascii_y + 15*1}">                         ..@@..</tspan>
-<tspan x="{ascii_x}" y="{ascii_y + 15*2}">                        ..@<tspan class="fur">.+</tspan>@%.</tspan>
-<tspan x="{ascii_x}" y="{ascii_y + 15*3}">   ......               .@<tspan class="fur">#*=--@</tspan>..</tspan>
-<tspan x="{ascii_x}" y="{ascii_y + 15*4}">  .@<tspan class="fur">**%</tspan>@@..             .@<tspan class="fur">+-:</tspan>@.<tspan class="fur">=+</tspan>@.</tspan>
-<tspan x="{ascii_x}" y="{ascii_y + 15*5}"> .@<tspan class="fur">=</tspan>%@<tspan class="fur">..=#</tspan>@..           .<tspan class="fur">+.-:</tspan>#=<tspan class="fur">@</tspan>%@@<tspan class="ear">.</tspan></tspan>
-<tspan x="{ascii_x}" y="{ascii_y + 15*6}"> .@<tspan class="fur">.:.</tspan>@<tspan class="fur">..=-=@</tspan>..        .<tspan class="fur">*#++-.</tspan>@<tspan class="ear">...</tspan>@@<tspan class="ear">..</tspan></tspan>
-<tspan x="{ascii_x}" y="{ascii_y + 15*7}"> .@<tspan class="fur">.+-</tspan>@@<tspan class="fur">.:-:-*</tspan>@..     ..@<tspan class="fur">*####</tspan>@<tspan class="ear">........</tspan></tspan>
-<tspan x="{ascii_x}" y="{ascii_y + 15*8}"> .@=@<tspan class="ear">...</tspan>@<tspan class="fur">+##%++</tspan>#@@..=@@@@<tspan class="fur">:::::</tspan>@<tspan class="ear">......</tspan>@<tspan class="ear">..</tspan></tspan>
-<tspan x="{ascii_x}" y="{ascii_y + 15*9}"> .@<tspan class="ear">......</tspan>@<tspan class="fur">:----........:-=====+%#.</tspan>@@<tspan class="fur">.=.</tspan>@.</tspan>
-<tspan x="{ascii_x}" y="{ascii_y + 15*10}">.@<tspan class="ear">.......</tspan>@<tspan class="fur">:==============-....--=#..-...</tspan>.</tspan>
-<tspan x="{ascii_x}" y="{ascii_y + 15*11}"> .@<tspan class="ear">.....</tspan>@<tspan class="fur">+-=:......</tspan>+%%@@<tspan class="fur">*+</tspan>@@@%<tspan class="fur">#-</tspan>@ @<tspan class="fur">.-%.</tspan>@.</tspan>
-<tspan x="{ascii_x}" y="{ascii_y + 15*12}"> .@<tspan class="ear">...-</tspan>@<tspan class="fur">+-=</tspan>*%@@@@@@#<tspan class="inside">     </tspan>@<tspan class="eyes">.+.-=</tspan>@  @.<tspan class="pink">@@</tspan>.@.</tspan>
-<tspan x="{ascii_x}" y="{ascii_y + 15*13}">  .#@.#<tspan class="fur">+-=</tspan>@-@<tspan class="eyes">......</tspan>@<tspan class="inside">     </tspan>@<tspan class="eyes">%#===#</tspan>@--<tspan class="pink">@@@@</tspan>...</tspan>
-<tspan x="{ascii_x}" y="{ascii_y + 15*14}">   .@@<tspan class="fur">.:=</tspan>@--@<tspan class="eyes">=+=+==</tspan>@<tspan class="inside">     </tspan>@<tspan class="eyes">-+===+</tspan>@---<tspan class="pink">@@</tspan>.@@.</tspan>
-<tspan x="{ascii_x}" y="{ascii_y + 15*15}">   .@<tspan class="back">@%.</tspan>@---@<tspan class="eyes">=+====</tspan>@<tspan class="inside">      </tspan>@<tspan class="eyes">*==++</tspan>@---<tspan class="inside">...</tspan>@.</tspan>
-<tspan x="{ascii_x}" y="{ascii_y + 15*16}">    .@<tspan class="front">@@</tspan>@---@<tspan class="eyes">=++=+=</tspan>@<tspan class="inside">       </tspan>@<tspan class="eyes">*+=*</tspan>@---<tspan class="blue">@@@@</tspan>.</tspan>
-<tspan x="{ascii_x}" y="{ascii_y + 15*17}">    .@<tspan class="front">.:</tspan>@---@<tspan class="eyes">*====*</tspan>@<tspan class="inside">        </tspan>@@@#---@<tspan class="inside">+   </tspan>@.</tspan>
-<tspan x="{ascii_x}" y="{ascii_y + 15*18}">   .-@<tspan class="front">@@</tspan>@----@@@@@@<tspan class="inside">    <tspan class="mouth">-%</tspan>     </tspan>@+@@@<tspan class="inside">      </tspan>:.</tspan>
-<tspan x="{ascii_x}" y="{ascii_y + 15*19}">  .@<tspan class="front">@@@.@</tspan>@-------@<tspan class="inside">                    #</tspan>@..</tspan>
-<tspan x="{ascii_x}" y="{ascii_y + 15*20}">   .@<tspan class="inside">      </tspan>@@@@@@<tspan class="inside">                    </tspan>@.</tspan>
-<tspan x="{ascii_x}" y="{ascii_y + 15*21}">   ..@<tspan class="inside">-:                      </tspan><tspan class="choker">@@@@@@@</tspan>%@..</tspan>
-<tspan x="{ascii_x}" y="{ascii_y + 15*22}">      .<tspan class="inside">   </tspan><tspan class="eyes">@@</tspan>em<tspan class="inside">       </tspan><tspan class="choker">%@@@@@@@@@@</tspan>.<tspan class="inside">@@=.@</tspan><tspan class="eyes">-=##%@</tspan>..</tspan>
-<tspan x="{ascii_x}" y="{ascii_y + 15*23}">      .<tspan class="eyes">@@+--</tspan><tspan class="choker">#@@@@@@</tspan><tspan class="inside">.@@%@..</tspan><tspan class="choker">@@@@@@@@</tspan><tspan class="eyes">=@-===@</tspan>..</tspan>
-<tspan x="{ascii_x}" y="{ascii_y + 15*24}">    .<tspan class="eyes">@@@.....-@.</tspan><tspan class="choker">@@@@@@@@@@@#</tspan>......<tspan class="eyes">%=-#%#@</tspan>.</tspan>
-<tspan x="{ascii_x}" y="{ascii_y + 15*25}">     ..<tspan class="eyes">@*=%%@=-.@</tspan>..........      ..<tspan class="eyes">@@@@</tspan>...</tspan>
-<tspan x="{ascii_x}" y="{ascii_y + 15*26}">      .<tspan class="eyes">@@@</tspan>...<tspan class="eyes">*+@</tspan>..                .....</tspan>
-<tspan x="{ascii_x}" y="{ascii_y + 15*27}">       ..   .<tspan class="eyes">@@</tspan>.</tspan>
-<tspan x="{ascii_x}" y="{ascii_y + 15*28}">             ..</tspan>
+    <tspan x="{ascii_x}" y="{ascii_y}">                           ..</tspan>
+    <tspan x="{ascii_x}" y="{ascii_y + 15 * 1}">                         ..@@..</tspan>
+    <tspan x="{ascii_x}" y="{ascii_y + 15 * 2}">                        ..@<tspan class="fur">.+</tspan>@%.</tspan>
+    <tspan x="{ascii_x}" y="{ascii_y + 15 * 3}">   ......               .@<tspan class="fur">#*=--@</tspan>..</tspan>
+    <tspan x="{ascii_x}" y="{ascii_y + 15 * 4}">  .@<tspan class="fur">**%</tspan>@@..             .@<tspan class="fur">+-:</tspan>@.<tspan class="fur">=+</tspan>@.</tspan>
+    <tspan x="{ascii_x}" y="{ascii_y + 15 * 5}"> .@<tspan class="fur">=</tspan>%@<tspan class="fur">..=#</tspan>@..           .<tspan class="fur">+.-:</tspan>#=<tspan class="fur">@</tspan>%@@<tspan class="ear">.</tspan></tspan>
+    <tspan x="{ascii_x}" y="{ascii_y + 15 * 6}"> .@<tspan class="fur">.:.</tspan>@<tspan class="fur">..=-=@</tspan>..        .<tspan class="fur">*#++-.</tspan>@<tspan class="ear">...</tspan>@@<tspan class="ear">..</tspan></tspan>
+    <tspan x="{ascii_x}" y="{ascii_y + 15 * 7}"> .@<tspan class="fur">.+-</tspan>@@<tspan class="fur">.:-:-*</tspan>@..     ..@<tspan class="fur">*####</tspan>@<tspan class="ear">........</tspan></tspan>
+    <tspan x="{ascii_x}" y="{ascii_y + 15 * 8}"> .@=@<tspan class="ear">...</tspan>@<tspan class="fur">+##%++</tspan>#@@..=@@@@<tspan class="fur">:::::</tspan>@<tspan class="ear">......</tspan>@<tspan class="ear">..</tspan></tspan>
+    <tspan x="{ascii_x}" y="{ascii_y + 15 * 9}"> .@<tspan class="ear">......</tspan>@<tspan class="fur">:----........:-=====+%#.</tspan>@@<tspan class="fur">.=.</tspan>@.</tspan>
+    <tspan x="{ascii_x}" y="{ascii_y + 15 * 10}">.@<tspan class="ear">.......</tspan>@<tspan class="fur">:==============-....--=#..-...</tspan>.</tspan>
+    <tspan x="{ascii_x}" y="{ascii_y + 15 * 11}"> .@<tspan class="ear">.....</tspan>@<tspan class="fur">+-=:......</tspan>+%%@@<tspan class="fur">*+</tspan>@@@%<tspan class="fur">#-</tspan>@ @<tspan class="fur">.-%.</tspan>@.</tspan>
+    <tspan x="{ascii_x}" y="{ascii_y + 15 * 12}"> .@<tspan class="ear">...-</tspan>@<tspan class="fur">+-=</tspan>*%@@@@@@#<tspan class="inside">     </tspan>@<tspan class="eyes">.+.-=</tspan>@  @.<tspan class="pink">@@</tspan>.@.</tspan>
+    <tspan x="{ascii_x}" y="{ascii_y + 15 * 13}">  .#@.#<tspan class="fur">+-=</tspan>@-@<tspan class="eyes">......</tspan>@<tspan class="inside">     </tspan>@<tspan class="eyes">%#===#</tspan>@--<tspan class="pink">@@@@</tspan>...</tspan>
+    <tspan x="{ascii_x}" y="{ascii_y + 15 * 14}">   .@@<tspan class="fur">.:=</tspan>@--@<tspan class="eyes">=+=+==</tspan>@<tspan class="inside">     </tspan>@<tspan class="eyes">-+===+</tspan>@---<tspan class="pink">@@</tspan>.@@.</tspan>
+    <tspan x="{ascii_x}" y="{ascii_y + 15 * 15}">   .@<tspan class="back">@%.</tspan>@---@<tspan class="eyes">=+====</tspan>@<tspan class="inside">      </tspan>@<tspan class="eyes">*==++</tspan>@---<tspan class="inside">...</tspan>@.</tspan>
+    <tspan x="{ascii_x}" y="{ascii_y + 15 * 16}">    .@<tspan class="front">@@</tspan>@---@<tspan class="eyes">=++=+=</tspan>@<tspan class="inside">       </tspan>@<tspan class="eyes">*+=*</tspan>@---<tspan class="blue">@@@@</tspan>.</tspan>
+    <tspan x="{ascii_x}" y="{ascii_y + 15 * 17}">    .@<tspan class="front">.:</tspan>@---@<tspan class="eyes">*====*</tspan>@<tspan class="inside">        </tspan>@@@#---@<tspan class="inside">+   </tspan>@.</tspan>
+    <tspan x="{ascii_x}" y="{ascii_y + 15 * 18}">   .-@<tspan class="front">@@</tspan>@----@@@@@@<tspan class="inside">    <tspan class="mouth">-%</tspan>     </tspan>@+@@@<tspan class="inside">      </tspan>:.</tspan>
+    <tspan x="{ascii_x}" y="{ascii_y + 15 * 19}">  .@<tspan class="front">@@@.@</tspan>@-------@<tspan class="inside">                    #</tspan>@..</tspan>
+    <tspan x="{ascii_x}" y="{ascii_y + 15 * 20}">   .@<tspan class="inside">      </tspan>@@@@@@<tspan class="inside">                    </tspan>@.</tspan>
+    <tspan x="{ascii_x}" y="{ascii_y + 15 * 21}">   ..@<tspan class="inside">-:                      </tspan><tspan class="choker">@@@@@@@</tspan>%@..</tspan>
+    <tspan x="{ascii_x}" y="{ascii_y + 15 * 22}">      .<tspan class="inside">   </tspan><tspan class="eyes">@@</tspan>em<tspan class="inside">       </tspan><tspan class="choker">%@@@@@@@@@@</tspan>.<tspan class="inside">@@=.@</tspan><tspan class="eyes">-=##%@</tspan>..</tspan>
+    <tspan x="{ascii_x}" y="{ascii_y + 15 * 23}">      .<tspan class="eyes">@@+--</tspan><tspan class="choker">#@@@@@@</tspan><tspan class="inside">.@@%@..</tspan><tspan class="choker">@@@@@@@@</tspan><tspan class="eyes">=@-===@</tspan>..</tspan>
+    <tspan x="{ascii_x}" y="{ascii_y + 15 * 24}">    .<tspan class="eyes">@@@.....-@.</tspan><tspan class="choker">@@@@@@@@@@@#</tspan>......<tspan class="eyes">%=-#%#@</tspan>.</tspan>
+    <tspan x="{ascii_x}" y="{ascii_y + 15 * 25}">     ..<tspan class="eyes">@*=%%@=-.@</tspan>..........      ..<tspan class="eyes">@@@@</tspan>...</tspan>
+    <tspan x="{ascii_x}" y="{ascii_y + 15 * 26}">      .<tspan class="eyes">@@@</tspan>...<tspan class="eyes">*+@</tspan>..                .....</tspan>
+    <tspan x="{ascii_x}" y="{ascii_y + 15 * 27}">       ..   .<tspan class="eyes">@@</tspan>.</tspan>
+    <tspan x="{ascii_x}" y="{ascii_y + 15 * 28}">             ..</tspan>
 </text>'''
-        # Main content starts at x=360
-        x_main = 360
+
+        # Main content starts at x=480
+        x_main = 430
         y_start = top_margin
 
         # User header - use dash format for all usernames, handling invisible characters
@@ -1066,7 +1300,7 @@ text, tspan {{white-space: pre;}}
             "Repository": lambda
                 value: f'<tspan class="value">{repos_owned} (<tspan class="key">Contributed</tspan>: {repos_contributed})</tspan> | <tspan class="value"><tspan class="key">Stars</tspan>: {stars}</tspan> | <tspan class="value"><tspan class="key">Followers</tspan>: {followers}</tspan>',
             "Commits": lambda
-                value: f'<tspan class="value">{data["total_commits"]:,}</tspan> | <tspan class="value"><tspan class="key">Lines</tspan>: {net_lines:,} ( <tspan class="addColor">{total_additions:,}++</tspan>,  <tspan class="delColor">{total_deletions:,}--</tspan> )</tspan>',
+                value: f'<tspan class="value">{data["total_commits"]:,}</tspan>',
             "Issues": lambda
                 value: f'<tspan class="value"><tspan class="key">Open</tspan>: <tspan class="green">{open_issues}</tspan></tspan> | <tspan class="value"><tspan class="key">Closed</tspan>: <tspan class="red">{closed_issues}</tspan></tspan>',
             "Pull Requests": lambda
@@ -1117,11 +1351,10 @@ text, tspan {{white-space: pre;}}
             for i, (lang, stats) in enumerate(list(language_percentages.items())[:10]):  # Show top 10 languages
                 percentage_str = f"{stats['percentage']:.1f}%"
                 commits_str = f"{stats['commits']:,} commits"
-                lines_str = f"(+{stats['additions']:,} -{stats['deletions']:,})"
 
                 svg_content += f'''
 <text x="{x_main}" y="{y_current}" fill="{text_color}" font-size="14px">
-<tspan x="{x_main}" y="{y_current}">  <tspan style="fill:{stats['color']}">●</tspan> <tspan class="key">{lang}</tspan>: <tspan class="value">{percentage_str}</tspan> <tspan class="value">{commits_str}</tspan> <tspan class="value">{lines_str}</tspan></tspan>
+<tspan x="{x_main}" y="{y_current}">  <tspan style="fill:{stats['color']}">●</tspan> <tspan class="key">{lang}</tspan>: <tspan class="value">{percentage_str}</tspan> <tspan class="value">{commits_str}</tspan></tspan>
 </text>'''
                 y_current += line_height
 
@@ -1221,6 +1454,12 @@ def main():
             print(f"\nTop languages:")
             for i, (lang, stats) in enumerate(list(language_stats.items())[:10]):
                 print(f"  {i + 1}. {lang}: {stats['percentage']:.1f}% ({stats['commits']:,} commits)")
+                # List all repositories for this language
+                if stats.get('repos'):
+                    # Sort repos by commit count in descending order
+                    sorted_repos = sorted(stats['repos'].items(), key=lambda x: x[1], reverse=True)
+                    for repo, commits in sorted_repos:
+                        print(f"      - {repo}: {commits:,} commits")
         else:
             print("\nNo language statistics found.")
 
