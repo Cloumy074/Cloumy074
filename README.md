@@ -7,7 +7,7 @@
 > 
 > (Estimate fix time: October 2025)
 > 
-> Please contact me by my [alternative email](cloumy074@proton.me) if you need to reach me. Many thanks! 
+> Please contact me by my [alternative email](mailto:cloumy074@proton.me) if you need to reach me. Many thanks! 
 --- 
 <div align="center">
 <picture>
