@@ -1,7 +1,13 @@
 ## Hi there, I'm Cloumy!👋
 
 <a href="https://www.cloumy.top"><img src="https://img.shields.io/website?ddown_message=Offline&label=CLOUMY.top&style=for-the-badge&up_message=Online&url=https%3A%2F%2Fwww.cloumy.top" width="auto" height="32"></a>
-
+---
+> [!Caution]
+> My current main email (me@cloumy.top) will soon be disabled due to technical issues. 
+> 
+> (Estimate fix time: October 2025)
+> 
+> Please contact me by my [alternative email](cloumy074@proton.me) if you need to reach me. Many thanks! 
 --- 
 <div align="center">
 <picture>
