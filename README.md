@@ -3,7 +3,7 @@
 <a href="https://www.cloumy.top"><img src="https://img.shields.io/website?ddown_message=Offline&label=CLOUMY.top&style=for-the-badge&up_message=Online&url=https%3A%2F%2Fwww.cloumy.top" width="auto" height="32"></a>
 ---
 > [!Caution]
-> My current main email (me@cloumy.top) will soon be disabled due to technical issues. 
+> My current main email (me@cloumy.top) is currently disabled due to technical issues. 
 > 
 > (Estimate fix time: October 2025)
 > 
