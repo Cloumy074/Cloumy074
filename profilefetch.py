@@ -149,7 +149,7 @@ def get_profile_content_definition(user_data):
 
     # Contact info
     content_lines.extend([
-        ("Email.Contact", "(Currently NOT functional!!)"),
+        ("Email.Contact", "me@cloumy.top"),
         ("Email.Alternative", "cloumy074@proton.me"),
         ("LinkedIn", "in/yuduoz"),
         ("Discord", "Cloumy074"),
